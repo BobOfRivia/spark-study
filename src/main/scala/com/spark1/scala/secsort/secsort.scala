@@ -20,7 +20,7 @@ object secsort{
     var file = sc.textFile("D:\\LearnWSpace\\Language\\scala\\scalaWkspace\\spark-study\\src\\main\\scala\\com\\spark1\\scala\\secsort\\secsort")
     file.map{ line =>
       var l = line.split(" ")
-      (new SecSort(l(0).toInt,l(1).toInt),l(0).toInt,l(0).toInt)
+      (new SecSort(l(0).toInt,l(1).toInt),l(0).toInt,l(1).toInt)
     }.sortBy(_._1).map(m => (m._2,m._3)).foreach(pair => println(pair._1 + " "+pair._2 ))
 
 
