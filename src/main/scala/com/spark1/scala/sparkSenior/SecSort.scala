@@ -10,5 +10,10 @@ class SecSort(val first:Int,val second:Int) extends Ordered[SecSort] with Serial
     if(this.first != that.first) this.first - that.first
     else this.second - that.second
   }
+
+  override def toString: String = {
+    first+" "+second
+  }
+
 }
 
