@@ -1,9 +1,14 @@
 package com.spark1.scala.sparkSenior
 
+import org.apache.spark.Partitioner
+import org.apache.spark.rdd.{MapPartitionsRDD, RDD}
+import shapeless.T
+
 import scala.Option
 import scala.collection.Iterator
 import scala.collection.mutable.ArrayBuffer
 import scala.com.spark1.scala.SparkComm
+import scala.reflect.ClassTag
 import scala.util.Random
 
 /**
@@ -19,11 +24,11 @@ object Topn extends SparkComm{
     //方案一
     //此处groupByKey 可能会OOM。
     //另一方面，如果某个key包含的数据占总数据的99%，那会造成严重的数据倾斜
-//    lines.groupByKey().map{
-//      line =>
-//        var itr = sortTopn(line._2,3)
-//        (line._1,itr)
-//    }.foreach(printTuple(_))
+    lines.groupByKey().map{
+      line =>
+        var itr = sortTopn(line._2,3)
+        (line._1,itr)
+    }.foreach(printTuple(_))
 
     //方案二
     //多段聚合
@@ -40,13 +45,51 @@ object Topn extends SparkComm{
         (m._1,sortTopn(m._2,2))
     }.foreach(println(_))
 
+//    ================================================================================================
+
+
+
+    // 针对方案二进行优化
+
+    class myPartitioner(partnum:Int) extends Partitioner{
+      override def numPartitions: Int = partnum
+
+      override def getPartition(key: Any): Int = {
+        val code  = key.asInstanceOf[(String,Int)]._2.hashCode % numPartitions
+        if(code <0){
+          code + numPartitions
+        }else{
+          code
+        }
+      }
+    }
+
+    /**
+      * 自定义分区器
+      *
+      * todo
+      */
+    //TODO 如何保证flatMap不会改变分区
+    var rddm1: RDD[((Int, String), Int)] =  lines.mapPartitions({ m =>
+      m.map{ l =>((Random.nextInt(2),l._1),l._2)}
+    })
+
+    rddm1.groupByKey(new myPartitioner(3)).flatMap{
+      m=>
+        sortTopn(m._2,2).map((m._1._2,_))
+    }.groupByKey(new myPartitioner(3)).map{
+      m =>
+        (m._1,sortTopn(m._2,2))
+    }.foreach(println(_))
+    //    ================================================================================================
+
+
     //方案三
     /**
       * 思路：在shuffle之前，先对分区中的数据进行一次聚合操作，获取当前分区的分组之后的TOPN结果，然后再对局部聚合结果，做一次全局的聚合
       */
 //    lines.aggregateByKey(0)(_+_,_+_) <=等价于=>
 //    lines.reduceByKey(_+_)
-
     /**
       * 第二个参数为针对同一个key的分区内部执行函数
       * 第三个参数为对所有分区执行函数

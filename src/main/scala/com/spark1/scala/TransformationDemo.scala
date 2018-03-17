@@ -1,4 +1,7 @@
-package scala.com.spark1.scala;
+package scala.com.spark1.scala
+
+import org.apache.spark.rdd.RDD
+;
 
 /**
  * Created by JACK on 2018/2/17.
@@ -20,8 +23,8 @@ object TransformationDemo extends SparkComm{
         rdd.filter(_%2 ==0).foreach(printMap _)
 
         //flatMap 将行拆分为单词
-        var rdd1 = sc.parallelize(Array("hello world","hello jack","hello me and you"))
-        rdd1.flatMap(_.split(" ")).foreach(printMap _)
+        var rdd1: RDD[String] = sc.parallelize(Array("hello world","hello jack","hello me and you"))
+        rdd1.map(l => "").foreach(printMap _)
 
         //groupByKey || groupBy 将每个班级的成绩进行分组
         /**
