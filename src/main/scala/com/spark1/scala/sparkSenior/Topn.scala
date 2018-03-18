@@ -2,13 +2,9 @@ package com.spark1.scala.sparkSenior
 
 import org.apache.spark.Partitioner
 import org.apache.spark.rdd.{MapPartitionsRDD, RDD}
-import shapeless.T
 
-import scala.Option
-import scala.collection.Iterator
 import scala.collection.mutable.ArrayBuffer
 import scala.com.spark1.scala.SparkComm
-import scala.reflect.ClassTag
 import scala.util.Random
 
 /**

@@ -42,8 +42,8 @@
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.12</artifactId>
-      <version>1.0.0</version>
+      <artifactId>kafka_2.11</artifactId>
+      <version>1.0.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
     <dependency>
