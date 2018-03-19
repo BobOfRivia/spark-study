@@ -37,8 +37,8 @@ object streamingtest {
         var isRunning = true
         while(isRunning){
           // to decide if need to close
-          var judge = false
-          if(judge){
+          val judge = false
+          if(!judge){
            Thread.sleep(60000)
           }else{
             isRunning=false
@@ -47,7 +47,7 @@ object streamingtest {
         ssc.stop()
       }
 
-    })
+    }).start()
 
     println("prepare to stop streaming")
     ssc.awaitTermination()
