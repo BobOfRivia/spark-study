@@ -1,21 +1,18 @@
 package com.stock.realtime.Producer
 
-import java.sql.{DriverManager, PreparedStatement, ResultSet}
-import java.text.SimpleDateFormat
+import java.sql.{DriverManager, ResultSet}
 import java.util.{Calendar, Properties}
 import java.util.concurrent.{ExecutorService, Executors}
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.SQLContext
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import scalaj.http._
 
 import scala.collection.mutable.ArrayBuffer
 
 /**
   * TODO Producer need to be reconstruct
   */
-class StockTimeProducer {
+object StockTimeProducer {
 
 
   /**
@@ -26,12 +23,12 @@ class StockTimeProducer {
     */
   def main(args: Array[String]): Unit = {
 
-    var onestockUrl = "http://hq.sinajs.cn/list=sh%s"
+    var onestockUrl = "http://hq.sinajs.cn/list=%s%s"
 
 //    var sc = SQLContext(new SparkContext(new SparkConf().setAppName("StockTimeProducer").setMaster("local")))
 
-    var dm = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/lifeblog?user=root&password=541325&serverTimezone=GMT")
-    var result: ResultSet =dm.prepareStatement(" select stock_id from t_stock_list ").executeQuery()
+    var dm = DriverManager.getConnection("jdbc:mysql://192.168.20.1:3306/lifeblog?user=root&password=541325&serverTimezone=GMT")
+    var result: ResultSet =dm.prepareStatement(" select stock_id,belong_typ from t_stock_list ").executeQuery()
 
     val timeOfOncePick = 60*1000*10 //10min
 
@@ -39,24 +36,25 @@ class StockTimeProducer {
     val  stockList =ArrayBuffer[String]()
 
     while(result.next()){
-      stockList.+=(onestockUrl.format(result.getString(0)))
+      stockList.+=(onestockUrl.format(result.getString(2),result.getString(1)))
     }
 
     val topic ="stocktpc"
 
-
+//http://kafka.apache.org/documentation.html#producerconfigs
     //1. construct KafkaProducer
     // 1. 创建一个Producer对象
     // 1.1 构建一个Properties以及给定连接kafka的相关producer的参数
     val props: Properties = new Properties
     // a. 给定kafka的服务路径信息
-    props.put("metadata.broker.list", "bogon:9092,bogon:9093,bogon:9094")
+    props.put("bootstrap.servers", "bogon:9092,bogon:9093,bogon:9094")
     // b. 给定数据发送是否等待broker返回结果, 默认为0表示不等待
     props.put("request.required.acks", "0")
     // c. 给定数据发送方式，默认是sync==>同步发送数据，可以修改为异步发送数据(async)
     props.put("producer.type", "sync")
     // d. 给定消息序列化为byte数组的方式，默认为: kafka.serializer.DefaultEncoder, 默认情况下，要求Producer发送的数据类型是byte数组；如果发送string类型的数据，需要给定另外的Encoder编码器
-    props.put("serializer.class", "kafka.serializer.StringEncoder")
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     // e. 数据发送默认采用hash的机制决定消息发送到那一个分区中，默认值为: kafka.producer.DefaultPartitioner, 参数为: partitioner.class
     // TODO: 有时候需要根据业务的需要自定义一个数据分区器
 //    props.put("partitioner.class", "com.ibeifeng.kafka.producer.PartitionerDemo")
@@ -64,7 +62,7 @@ class StockTimeProducer {
     val producer = new KafkaProducer[String,String](props)
 
     //new two thread to pick stock message
-    val threadpool: ExecutorService = Executors.newFixedThreadPool(4)
+    val threadpool: ExecutorService = Executors.newFixedThreadPool(1)
 
     val calendar = Calendar.getInstance()
     calendar.set(Calendar.HOUR_OF_DAY,9)
@@ -77,7 +75,7 @@ class StockTimeProducer {
     calendar.set(Calendar.HOUR_OF_DAY,13)
     calendar.set(Calendar.MINUTE,0)
     val start2 = calendar.getTimeInMillis
-    calendar.set(Calendar.HOUR_OF_DAY,15)
+    calendar.set(Calendar.HOUR_OF_DAY,20)
     val end2 = calendar.getTimeInMillis
 
     //judge sleep time
@@ -100,26 +98,40 @@ class StockTimeProducer {
     //main function of producer
     def runStockProducer(): Unit ={
       for(stock <- stockList){
-        threadpool.execute(() =>{
-          //2.make ProducerRecord
-          val resp: HttpResponse[String] = Http(onestockUrl.format(stock)).asString
-          val pr = new ProducerRecord[String,String](topic,stock,resp.body)
+        threadpool.execute(new Runnable {
+          override def run(): Unit = {
+            //2.make ProducerRecord (rewrite for charset)
+            val resp: HttpResponse[String] = new HttpRequest( url = stock,
+              method = "GET",
+              connectFunc = (req, conn) => conn.connect,
+              params = Nil,
+              headers = Seq("User-Agent" -> "scalaj-http/1.0"),
+              options = HttpConstants.defaultOptions,
+              proxyConfig = None,
+              charset = "GB2312",
+              sendBufferSize = 4096,
+              urlBuilder = (req) => HttpConstants.appendQs(req.url, req.params, req.charset),
+              compress = true).asString
+            println("url:"+stock+" sending msg:"+resp.body+" to topic"+topic)
+            val pr = new ProducerRecord[String,String](topic,stock,resp.body)
 
-          //3.send to kafka
-          producer.send(pr)
+            //3.send to kafka
+            producer.send(pr)
 
-          Thread.sleep(500)
+            Thread.sleep(5000)
 
-        })
+          }
+        } )
       }
     }
 
+    //main Task Controller  with time-step
     while(true){
       runStockProducer();
 
-      var now: Long =  Calendar.getInstance().getTimeInMillis
+      val now: Long =  Calendar.getInstance().getTimeInMillis
 
-      var waittime = timeBlockJudge(now)
+      val waittime = timeBlockJudge(now)
       if(waittime == -1){
         println("stock time over")
         //TODO: how about other thread haven't finished this time??
@@ -135,9 +147,11 @@ class StockTimeProducer {
 
 
     //5. make a jvm hook,while jvm closed this guy dead
-    Runtime.getRuntime.addShutdownHook(new Thread(()=>{
-      println("JVM  CLOSED , SO PRODUCER WILL CLOSE")
-      producer.close()
+    Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+      override def run(): Unit = {
+        println("JVM  CLOSED , SO PRODUCER WILL CLOSE")
+        producer.close()
+      }
     }))
 
   }

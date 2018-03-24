@@ -36,31 +36,34 @@ object Producer {
     val namelist = ArrayBuffer("Gakki","Gakki","Gakki","Hello","World","Spark","Spark")
 
     for(i <- 0 to 3){
-      new Thread(() =>{
-//        var proRecord = new ProducerRecord[String,String]()
-        val key = random.nextInt(100)
+      new Thread(new Runnable {
+        override def run(): Unit = {
+          //        var proRecord = new ProducerRecord[String,String]()
+          val key = random.nextInt(100)
 
-        val wordnum = random.nextInt(10)
+          val wordnum = random.nextInt(10)
 
-        var str = new StringBuilder
-        for(j <- 1 to wordnum){
-          str.append(namelist(random.nextInt(namelist.length-1))).append(" ")
-        }
+          var str = new StringBuilder
+          for(j <- 1 to wordnum){
+            str.append(namelist(random.nextInt(namelist.length-1))).append(" ")
+          }
 
-        val value =str.toString()
-        val proRd = new ProducerRecord[String,String](topic,key%3,key.toString,value)
+          val value =str.toString()
+          val proRd = new ProducerRecord[String,String](topic,key%3,key.toString,value)
 
-        producer.send(proRd)
+          producer.send(proRd)
 
-        try{
-          Thread.sleep(random.nextInt(50)+10)
-        }catch{
-          case e:Exception => println(e)
+          try
+            Thread.sleep(random.nextInt(50) + 10)
+          catch {
+            case e: Exception => println(e)
+          }
         }
       })
 
-      Runtime.getRuntime.addShutdownHook(new Thread(()=>{
-        println("Producer  closed with jvm dead")
+      Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+        override def run(): Unit =
+          println("Producer  closed with jvm dead")
         producer.close()
       }))
 

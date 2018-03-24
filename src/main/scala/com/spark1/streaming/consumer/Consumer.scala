@@ -27,7 +27,7 @@ object Consumer {
 
     var topics = Map("kafka0" -> 3)
 
-    KafkaUtils.createStream(ssc,kafkaParam,topics,StorageLevel.MEMORY_AND_DISK_2)
+//    KafkaUtils.createStream(ssc,kafkaParam,topics,StorageLevel.MEMORY_AND_DISK_2)
 
 
   }
