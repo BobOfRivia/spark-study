@@ -6,6 +6,9 @@ import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
 
 /**
   * TODO consumer need to be reconstruct
+  *
+  * Its a NormalConsumer demo
+  *
   */
 class StockTimeConsumer {
 

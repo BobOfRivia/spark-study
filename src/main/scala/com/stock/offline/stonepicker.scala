@@ -37,7 +37,7 @@ object stonepicker {
     try {
       while (rs.next()) {
         Thread.sleep(1100)
-        var code = rs.getString(1)
+        val code = rs.getString(1)
         val data = HttpUtil.get(urlSample.format(code), charset = "gb2312")
         println(data)
         writer.write(data)
