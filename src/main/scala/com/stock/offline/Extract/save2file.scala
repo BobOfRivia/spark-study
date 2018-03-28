@@ -1,6 +1,7 @@
-package com.stock.offline
+package com.stock.offline.Extract
 
 import com.alibaba.fastjson.JSON
+import com.stock.offline.StoneBean
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import spray.json.DefaultJsonProtocol
@@ -10,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by JACK on 2018/3/10.
   */
-object save2Jsonfile {
+object save2file {
   /**
     * 股票数据类
     * @param code 代码
@@ -29,6 +30,14 @@ object save2Jsonfile {
   object MyJsonProtocol extends DefaultJsonProtocol {
     implicit val colorFormat = jsonFormat11(stockel)
   }
+
+
+  val hql = "CREATE EXTERNAL TABLE IF NOT EXISTS t_stock_offline(date, oppoint,clspoint,cgmoney,cgpoint,minpoint,maxpoint,dealnum,dealmoney,cgrate) " +
+    " COMMENT 'This is the staging page view table' PARTITIONED BY (stockcode)" +
+    " ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'" +
+    " STORED AS TEXTFILE" +
+    " LOCATION '<hdfs_location>';"
+
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("save2hive").setMaster("local[2]")
@@ -50,13 +59,13 @@ object save2Jsonfile {
       var a = new ArrayBuffer[String]()
       for(el <- stock.hq){
         el(0)
+        //produce  to  kafka   &  Consumer use the batch data to insert into hive
         a += stockel(stock.code,el(0),el(1),el(2),el(3),el(4),el(5),el(6),el(7),el(8),el(9)).toJson.toString()
       }
       a
     }
     rdd2.take(4).foreach(println(_))
-//    rdd2.saveAsTextFile("file:///D://stock-message-json.txt")
-
+    rdd2.saveAsTextFile("file:///D://stock-message-json.txt")
     //使用Spark 将json文件处理为业务需要的json格式  code data1 data2 data3 ...
 
     //然后使用spark sql 来读取文件，生成临时表，并进行计算或查询 将结果保存为一张表。
