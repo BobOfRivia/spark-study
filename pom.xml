@@ -88,8 +88,12 @@
       <version>${spark.version}</version>
     </dependency>
 
-
-
+    <!-- https://mvnrepository.com/artifact/org.apache.hbase/hbase-it -->
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-it</artifactId>
+      <version>1.4.3</version>
+    </dependency>
   </dependencies>
 
 
