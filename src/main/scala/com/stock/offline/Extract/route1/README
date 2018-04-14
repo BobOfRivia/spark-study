@@ -1,0 +1,7 @@
+
+source  -->  file  -->  HDFS  -->  HBASE
+                                   -->  HIVE(Mapreduce)
+                                   -->  Spark
+
+
+

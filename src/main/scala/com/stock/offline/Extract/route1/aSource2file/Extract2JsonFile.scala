@@ -1,4 +1,4 @@
-package com.stock.offline.Extract
+package com.stock.offline.Extract.route1.aSource2file
 
 import java.io.FileWriter
 import java.sql.DriverManager
@@ -10,7 +10,7 @@ import spray.json.DefaultJsonProtocol
   * 获取股票信息
   * Save as json file
   *
-  * 示例URL:http://q.stock.sohu.com/hisHq?code=cn_%s&start=20171109&end=20180308&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.11224118720128917&0.238318188568853
+  * 示例URL:http://q.stock.sohu.com/hisHq?code=cn_%s&start=20171109&end=20180401&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.11224118720128917&0.238318188568853
   *
   */
 object Extract2JsonFile {
@@ -48,13 +48,13 @@ object Extract2JsonFile {
     val urlSample = "http://q.stock.sohu.com/hisHq?code=cn_%s&start=19901009&end=20180308&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.11224118720128917&0.238318188568853";
 
     val jdbcurl = "jdbc:mysql://127.0.0.1:3306/lifeblog?user=root&password=541325&serverTimezone=GMT"
-    val sql = "select stock_id,name from t_stock_list where goted = 0"
+    val sql = "select stock_id,name,belong_typ from t_stock_list where goted = 0"
     val updatesql = "update t_stock_list set goted=1 where stock_id =%s"
 
     val reg1 = """historySearchHandler\(\[(.*)\]\)""".r
 
     val conn = DriverManager.getConnection(jdbcurl)
-    val rs = conn.prepareStatement(sql).executeQuery();
+    val rs = conn.prepareStatement(sql).executeQuery()
     conn.setAutoCommit(false)
     val writer = new FileWriter(filePath,true);
     try {
