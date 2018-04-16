@@ -94,6 +94,13 @@
       <artifactId>hbase-it</artifactId>
       <version>1.4.3</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.26</version>
+    </dependency>
+
   </dependencies>
 
 
