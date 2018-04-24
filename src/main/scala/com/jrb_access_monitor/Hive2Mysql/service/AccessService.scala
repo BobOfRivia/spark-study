@@ -15,7 +15,7 @@ class AccessService {
 
 
   def findSomeDayLogs(timeblock:Int,startDate:String,endDate:String): List[accessDetails] ={
-    var baseSql=  "select * from hive_log_access where "
+    var baseSql=  "select * from hive_log_access "
 
     if(timeblock==Constants.TIME_BLOCK_DAY){
 

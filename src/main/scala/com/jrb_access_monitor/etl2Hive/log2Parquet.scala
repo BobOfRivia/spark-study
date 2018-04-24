@@ -1,16 +1,14 @@
 package com.jrb_access_monitor.etl2Hive
 
-
-
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
-import org.apache.spark.sql.types.{ StringType, StructField, StructType}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by JACK on 2018/4/14.
   */
-class log2Hive {
+class log2Parquet {
 
   def main(args: Array[String]): Unit = {
     val prs = new java.text.SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss")
@@ -38,7 +36,7 @@ class log2Hive {
     val sqlsession: SparkSession = SparkSession.builder.appName("log2Hive_hiveMission").master("local[2]").getOrCreate()
     val st =  StructType.apply(Array(StructField("IpAddr",StringType),StructField("bak1",StringType),StructField("bak2",StringType),StructField("Time",StringType),StructField("Method",StringType),StructField("page",StringType),StructField("Prot",StringType),StructField("threadCode",StringType)))
     val df: DataFrame = sqlsession.createDataFrame(rdd2,st)
-    df.write.mode(org.apache.spark.sql.SaveMode.Overwrite).saveAsTable("hive_log_access")
+    df.write.mode(org.apache.spark.sql.SaveMode.Overwrite).format("parquet").saveAsTable("hive_log_access")
 
 
   }
