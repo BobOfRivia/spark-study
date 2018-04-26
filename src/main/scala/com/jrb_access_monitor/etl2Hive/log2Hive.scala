@@ -10,7 +10,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 /**
   * Created by JACK on 2018/4/14.
   */
-class log2Hive {
+object log2Hive {
 
   def main(args: Array[String]): Unit = {
     val prs = new java.text.SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss")

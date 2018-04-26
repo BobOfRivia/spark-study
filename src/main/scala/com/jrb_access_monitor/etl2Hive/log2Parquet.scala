@@ -32,7 +32,7 @@ class log2Parquet {
         Row(list(0),list(1),list(2),fmt.format(prs.parse(list(3))),list(4),list(5),list(6),list(7),list(8))
     }
 
-    //save to hive
+    //save to parquet
     val sqlsession: SparkSession = SparkSession.builder.appName("log2Hive_hiveMission").master("local[2]").getOrCreate()
     val st =  StructType.apply(Array(StructField("IpAddr",StringType),StructField("bak1",StringType),StructField("bak2",StringType),StructField("Time",StringType),StructField("Method",StringType),StructField("page",StringType),StructField("Prot",StringType),StructField("threadCode",StringType)))
     val df: DataFrame = sqlsession.createDataFrame(rdd2,st)
