@@ -18,16 +18,18 @@ object log2Hive {
 
     val conf = new SparkConf().setAppName("log2Hive").setMaster("local[2]")
     val sc = new SparkContext()
+    //TODO read logs day by day
     val fileRDD: RDD[String] = sc.textFile("hdfs://bogon:8020/srcdata/yifs-apache-log/20180411/logs/access_log")
     val regmatch = "(.*) (.*) (.*) \\[(.*)\\] \\\"(.*) (.*) (.*)\\\" (.*) (.*)".r
     val recordRdd: RDD[List[String]] = fileRDD.map(line => regmatch.unapplySeq(line).getOrElse(List(line)))
 
+    //TODO because the orginal-data is perfect ,so we just  need to have a simple filter
     val filtered = recordRdd.filter(_.length < 9)
-    //记录被过滤的记录,用于调试
+    //log the filtered record
     filtered.saveAsTextFile("hdfs://bogon:8020/srcdata/yifs-apache-log/20180411/parse_result/access_log_filted")
 
 
-    //alived to hive
+    //alived logs save to hive
     val alived = recordRdd.filter(_.length==9)
     val rdd2: RDD[Row] = alived.map{
       list=>
