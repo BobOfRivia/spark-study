@@ -24,7 +24,7 @@ object StreamingConsumer {
     //使用KafkaUtils.createStream创建DStream
     val sc = new SparkContext(new SparkConf().setAppName("STConsumerSpark").setMaster("local[2]"))
 
-    //LocationStrategies
+    //LocationStrategie
 
     def getStreamingContext():StreamingContext = {
       val ssc = new StreamingContext(sc,Seconds(10))
@@ -42,6 +42,8 @@ object StreamingConsumer {
           (value(0),value(1).split(","))
       }
 
+      //TODO save to hbase
+
       ssc.checkpoint(checkpointPath)
       ssc
 
@@ -56,12 +58,7 @@ object StreamingConsumer {
 
     ssc.stop()
 
-    def saveDataTohive(tp:(String,Array[String])): Unit ={
 
-      var createsql = " create EXTERNAL TABLE IF NOT EXIST "
-
-
-    }
 
 
   }

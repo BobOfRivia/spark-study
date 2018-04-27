@@ -32,13 +32,6 @@ object save2file {
   }
 
 
-  val hql = "CREATE EXTERNAL TABLE IF NOT EXISTS t_stock_offline(date, oppoint,clspoint,cgmoney,cgpoint,minpoint,maxpoint,dealnum,dealmoney,cgrate) " +
-    " COMMENT 'This is the staging page view table' PARTITIONED BY (stockcode)" +
-    " ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'" +
-    " STORED AS TEXTFILE" +
-    " LOCATION '<hdfs_location>';"
-
-
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("save2hive").setMaster("local[2]")
     val sc = new SparkContext(conf)
@@ -65,7 +58,9 @@ object save2file {
       a
     }
     rdd2.take(4).foreach(println(_))
+    // TODO OR TODF & SAVE TO HIVE OR PQRQUET
     rdd2.saveAsTextFile("file:///D://stock-message-json.txt")
+    rdd2
     //使用Spark 将json文件处理为业务需要的json格式  code data1 data2 data3 ...
 
     //然后使用spark sql 来读取文件，生成临时表，并进行计算或查询 将结果保存为一张表。
