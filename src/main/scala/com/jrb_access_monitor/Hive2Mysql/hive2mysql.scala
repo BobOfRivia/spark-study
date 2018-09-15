@@ -1,6 +1,6 @@
 package com.jrb_access_monitor.Hive2Mysql
 
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 
 class hive2mysql {
@@ -19,7 +19,8 @@ class hive2mysql {
     //val df =spark.sql("select substr(time,1,8) as day,ipaddr,count(1) from hive_log_access group by ipaddr,day")
 
     //so
-    val df=spark.sql("select substr(time,1,8) as day,ipaddr from hive_log_access")
+    val df: DataFrame =spark.sql("select substr(time,1,8) as day,ipaddr from hive_log_access")
+    import spark.implicits._
     val result1 =df.map{
       line=>
         val key=(line.getString(0),line.getString(1))
@@ -31,7 +32,7 @@ class hive2mysql {
     }
 //    def func(a:(String,Int),b:(String,Int)): (String,Int) ={
 //      if(a._1==b._1)
-//        (a._1,a._2+a._2)
+//        (a._1,a._2+a._2)index.html
 //      else
 //        b
 //    }

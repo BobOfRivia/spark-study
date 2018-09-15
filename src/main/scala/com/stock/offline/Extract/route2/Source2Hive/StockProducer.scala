@@ -69,10 +69,11 @@ object StockProducer {
         val code = rs.getString(1)
         val data = HttpUtil.get(urlSample.format(code), charset = "gb2312")
         //unapply source to json-array
-        val jsonarr = reg1.unapplySeq(data).getOrElse(Array(""))(0)
-        if(!"".equals(jsonarr)){
+        val jsonarr = reg1.unapplySeq(data).getOrElse(Array(""))
+        println("jsonarr="+jsonarr)
+        if(!"".equals(jsonarr.toString)){
           //parse to json-object
-          val bean: StoneBean = JSON.parseObject(jsonarr,classOf[StoneBean])
+          val bean: StoneBean = JSON.parseObject(jsonarr.toString,classOf[StoneBean])
 
           for(el <- bean.hq){
             val jsonobj = StockEl(rs.getString(3),bean.code,el(0),el(1),el(2),el(3),el(4),el(5),el(6),el(7),el(8),el(9))

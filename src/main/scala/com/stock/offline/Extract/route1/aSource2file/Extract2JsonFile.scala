@@ -14,7 +14,7 @@ import spray.json.DefaultJsonProtocol
   *
   */
 object Extract2JsonFile {
-  val filePath = "d://stock-message-json-v2.txt"
+  val filePath = "/Users/guhongjie/data/spider/stock/stock-message-json.txt"
   var errcount:Int = 0
   /**
     *
@@ -23,6 +23,7 @@ object Extract2JsonFile {
     */
   def main(args: Array[String]): Unit = {
     getStockDetail()
+//    test()
   }
 
   /**
@@ -43,15 +44,17 @@ object Extract2JsonFile {
   object MyJsonProtocol extends DefaultJsonProtocol {
     implicit val colorFormat = jsonFormat11(stockel)
   }
-
+  import util.control.Breaks._
   def getStockDetail(): Unit ={
-    val urlSample = "http://q.stock.sohu.com/hisHq?code=cn_%s&start=19901009&end=20180308&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.11224118720128917&0.238318188568853";
+    val urlSample = "http://q.stock.sohu.com/hisHq?code=cn_%s&start=19901009&end=20180805&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.11224118720128917&0.238318188568853";
 
-    val jdbcurl = "jdbc:mysql://127.0.0.1:3306/lifeblog?user=root&password=541325&serverTimezone=GMT"
+    val jdbcurl = "jdbc:mysql://127.0.0.1:3306/spider?user=root&password=sxd5a5dwg&serverTimezone=GMT"
     val sql = "select stock_id,name,belong_typ from t_stock_list where goted = 0"
     val updatesql = "update t_stock_list set goted=1 where stock_id =%s"
 
     val reg1 = """historySearchHandler\(\[(.*)\]\)""".r
+
+    val reg2 = """\{(.*)\}""".r
 
     val conn = DriverManager.getConnection(jdbcurl)
     val rs = conn.prepareStatement(sql).executeQuery()
@@ -59,16 +62,32 @@ object Extract2JsonFile {
     val writer = new FileWriter(filePath,true);
     try {
       while (rs.next()) {
-        Thread.sleep(1100)
-        val code = rs.getString(1)
-        val data = HttpUtil.get(urlSample.format(code), charset = "gb2312")
-        val json = reg1.unapplySeq(data).getOrElse(Array("{}"))(0)
-        writer.write(json)
-        println(code + "  finished")
-        conn.prepareStatement(updatesql.format(code)).execute()
+        breakable{
+          Thread.sleep(1100)
+          val code = rs.getString(1)
+          var data = HttpUtil.get(urlSample.format(code), charset = "gb2312")
+  //        val test = reg1.unapplySeq(data)
+  //        val test1 = Array("{}")
+  //        val test2 =  reg1.unapplySeq(data).getOrElse(Array("{}"))
+  //        val test = reg1.unapplySeq(data).getOrElse(List[AnyRef])
+          data = data.substring(22,data.length-3)
+
+          if(data.equals("")){
+            break
+          }
+
+
+          val json = reg2.unapplySeq(data).get
+          println(json)
+  //        println(json(0))
+          writer.write(json(0))
+          println(code + "  finished")
+          conn.prepareStatement(updatesql.format(code)).execute()
+        }
       }
     }catch{
       case ex:Exception => {
+        ex.printStackTrace()
         println(ex)
         errcount +=1
         writer.flush()
@@ -85,6 +104,18 @@ object Extract2JsonFile {
       writer.close()
       conn.commit()
     }
+  }
+
+  def test(): Unit ={
+    val jsonMsg = "historySearchHandler([{\"status\":2,\"msg\":\"cn_000003 non-existent\",\"code\":\"cn_000003\"}])"
+
+    val reg1 = """historySearchHandler\(\[(.*)\]\)""".r
+    val res1 = reg1.unapplySeq(jsonMsg).getOrElse()
+    val res = reg1.unapplySeq(jsonMsg).getOrElse().asInstanceOf[List[AnyRef]]
+
+    println(res(0))
+
+    println()
   }
 
 

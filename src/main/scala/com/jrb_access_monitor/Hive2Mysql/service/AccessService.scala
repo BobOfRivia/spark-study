@@ -15,8 +15,16 @@ class AccessService {
 
 
   //TODO HIVE查询简单的PV
+  /**
+    * 一、sparksql 准实时查询
+    * 二、sparksql-DW 、hive-mr 离线分析
+    * @param timeblock
+    * @param startDate
+    * @param endDate
+    * @return
+    */
   def findSomeDayLogs(timeblock:Int,startDate:String,endDate:String): List[accessDetails] ={
-    var baseSql=  "select * from hive_log_access "
+    var baseSql=  "select * from hive_log_access where "
 
     if(timeblock==Constants.TIME_BLOCK_DAY){
 

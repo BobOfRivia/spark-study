@@ -1,24 +1,20 @@
 package com.stock.offline.Extract.route2.Source2Hive
 
-import java.sql.DriverManager
-import java.util.{Collections, Properties}
-
-import com.stock.offline.Extract.route1.aSource2file.save2file.stockel
 import com.stock.offline.Extract.route2.BeanUtils
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.InputDStream
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkConf}
 import org.apache.spark.streaming.{Minutes, StreamingContext}
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, ConsumerStrategy, KafkaUtils, LocationStrategies}
-import org.joda.time.Minutes
 
 class StockConsumer {
 
   def main(args: Array[String]): Unit = {
 
     //init Kafka
-    var kafkaParam = collection.Map[String, Object]("bootstrap.servers"->"bogon:9092,bogon:9093,bogon:9094"),("key.deserializer" ->"org.apache.kafka.common.serialization.StringDeserializer"),
+    var kafkaParam = collection.Map[String, Object](("bootstrap.servers"->"bogon:9092,bogon:9093,bogon:9094")
+    ,("key.deserializer" ->"org.apache.kafka.common.serialization.StringDeserializer"),
     ("value.deserializer" ->"org.apache.kafka.common.serialization.StringDeserializer"),("group.id" ->"stockgp"))
 
     //1. decide to use receiver or direct(direct means offset managed by spark then read data by spark)
